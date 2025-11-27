@@ -17,9 +17,10 @@ const geist = Geist({
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+
   return (
     <html lang="en" className={`${geist.variable}`}>
-      <body>{children}</body>
+        <body>{children}</body>
     </html>
   );
 }
