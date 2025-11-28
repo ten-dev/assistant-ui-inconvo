@@ -5,6 +5,7 @@ import { frontendTools } from "@assistant-ui/react-ai-sdk";
 // import { chatWithDataTools } from "@inconvo/data-chat-tools-ai-sdk";
 import { z } from "zod";
 import Inconvo from "@inconvoai/node";
+import type { ResponseCreateResponse } from "@inconvoai/node/resources/conversations";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
@@ -24,9 +25,17 @@ export async function POST(req: Request) {
 
   // TODO: get the user context from the request (e.g., auth token)
   const userContext = {
-    userId: "user-123",
-    // Add more context as needed
+    organisationId: 1,
   };
+
+  const messageDataAnalystDescription = [
+    `Send a message to your conversation with the data analyst.`,
+    `The analyst can reply with either chart, text or table depending on what you ask.`,
+    `You may ask additional clarifying follow up questions.`,
+    `If you don't get the answer you need, you can ask for it in a different way.`,
+    `Always keep your data queries brief and with a singular goal.`,
+    `You can use the 'get_data_summary' tool to get an overview of the data connected.`,
+  ].join("\n");
 
   const result = streamText({
     model: openai("gpt-5.1-chat-latest"),
@@ -65,10 +74,61 @@ export async function POST(req: Request) {
           const conversation = await inconvo.conversations.create({
             context: userContext,
           });
+          if (!conversation?.id) {
+            return "Failed to start conversation with data analyst.";
+          }
+          return {
+            conversationId: conversation.id,
+          };
+        },
+      }),
+      message_data_analyst: tool({
+        description: messageDataAnalystDescription,
+        inputSchema: z.object({
+          conversationId: z.string().describe("The ID of the conversation."),
+          message: z
+            .string()
+            .describe("The message to send to the data analyst."),
+        }),
+        execute: async ({ conversationId, message }) => {
+          const stream = inconvo.conversations.response.create(conversationId, {
+            message,
+            stream: true,
+          });
+          let finalResponse = null;
+          for await (const chunk of stream) {
+            if (chunk.type === "response.completed") {
+              finalResponse = chunk.response;
+              break;
+            }
+          }
+          if (!finalResponse) {
+            throw new Error("No response received from Inconvo");
+          }
+          const contentText = normalizeResponseToText(finalResponse);
+          return contentText;
         },
       }),
     },
   });
 
   return result.toUIMessageStreamResponse();
+}
+
+function normalizeResponseToText(response: ResponseCreateResponse): string {
+  if (!response || typeof response !== "object") {
+    return "(empty response)";
+  }
+
+  // The message field contains the text content/explanation
+  if (response.message) {
+    return response.message;
+  }
+
+  // Fallback to JSON representation if no message field
+  try {
+    return JSON.stringify(response, null, 2);
+  } catch (err) {
+    return `Failed to parse response: ${(err as Error).message}`;
+  }
 }
