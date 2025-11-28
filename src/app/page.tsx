@@ -1,11 +1,14 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
+import { useTheme } from "next-themes";
 import { AssistantSidebar } from "~/components/assistant-ui/assistant-sidebar";
 import { AssistantRuntimeProvider } from "@assistant-ui/react";
 import {
   useChatRuntime,
   AssistantChatTransport,
 } from "@assistant-ui/react-ai-sdk";
+import { Button } from "~/components/ui/button";
 
 export default function HomePage() {
   const runtime = useChatRuntime({
@@ -14,17 +17,44 @@ export default function HomePage() {
     }),
   });
 
+  const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const toggleTheme = () => {
+    setTheme(resolvedTheme === "dark" ? "light" : "dark");
+  };
+
+  const toggleLabel = useMemo(() => {
+    if (!mounted) return "Toggle theme";
+    return resolvedTheme === "dark" ? "Switch to light mode" : "Switch to dark mode";
+  }, [mounted, resolvedTheme]);
+
   return (
     <AssistantRuntimeProvider runtime={runtime}>
       <AssistantSidebar
         mainPanelProps={{ defaultSize: 70, minSize: 40 }}
         threadPanelProps={{ defaultSize: 30, minSize: 20 }}
       >
-        <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
-          <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
-            <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
-              Your <span className="text-[hsl(280,100%,70%)]">React</span> App
+        <main className="flex min-h-screen flex-col items-center justify-center bg-background text-foreground transition-colors">
+          <div className="container flex flex-col items-center justify-center gap-8 px-4 py-16 text-center">
+            <Button
+              variant="outline"
+              onClick={toggleTheme}
+              aria-label="Toggle color theme"
+              disabled={!mounted}
+            >
+              {toggleLabel}
+            </Button>
+            <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
+              Your <span className="text-primary">React</span> App
             </h1>
+            <p className="max-w-xl text-base text-muted-foreground">
+              Toggle between light and dark themes to preview how the assistant UI adapts to your brand colors.
+            </p>
           </div>
         </main>
       </AssistantSidebar>

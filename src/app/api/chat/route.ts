@@ -114,21 +114,3 @@ export async function POST(req: Request) {
 
   return result.toUIMessageStreamResponse();
 }
-
-function normalizeResponseToText(response: ResponseCreateResponse): string {
-  if (!response || typeof response !== "object") {
-    return "(empty response)";
-  }
-
-  // The message field contains the text content/explanation
-  if (response.message) {
-    return response.message;
-  }
-
-  // Fallback to JSON representation if no message field
-  try {
-    return JSON.stringify(response, null, 2);
-  } catch (err) {
-    return `Failed to parse response: ${(err as Error).message}`;
-  }
-}

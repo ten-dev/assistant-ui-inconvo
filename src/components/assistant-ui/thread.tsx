@@ -25,6 +25,7 @@ import * as m from "motion/react-m";
 
 import { Button } from "~/components/ui/button";
 import { MarkdownText } from "~/components/assistant-ui/markdown-text";
+import { InconvoTools } from "~/components/assistant-ui/tools/inconvo-tools";
 import { ToolFallback } from "~/components/assistant-ui/tool-fallback";
 import { TooltipIconButton } from "~/components/assistant-ui/tooltip-icon-button";
 import {
@@ -45,6 +46,7 @@ export const Thread: FC = () => {
             ["--thread-max-width" as string]: "44rem",
           }}
         >
+          <InconvoTools />
           <ThreadPrimitive.Viewport
             autoScroll={false}
             turnAnchor="top"
