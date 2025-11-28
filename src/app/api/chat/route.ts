@@ -35,12 +35,15 @@ export async function POST(req: Request) {
     `If you don't get the answer you need, you can ask for it in a different way.`,
     `Always keep your data queries brief and with a singular goal.`,
     `You can use the 'get_data_summary' tool to get an overview of the data connected.`,
+    `Do not repeat information already provided by the analyst in your user message`,
   ].join("\n");
+
+  console.log(system);
 
   const result = streamText({
     model: openai("gpt-5.1-chat-latest"),
     stopWhen: stepCountIs(5),
-    system, // Use the system message from the frontend if provided
+    system,
     messages: convertToModelMessages(messages),
     tools: {
       // Wrap frontend tools with frontendTools helper
