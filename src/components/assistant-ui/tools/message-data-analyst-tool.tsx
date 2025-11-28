@@ -2,7 +2,7 @@
 
 import { AlertCircle, Loader2 } from "lucide-react";
 import {
-  makeAssistantTool,
+  makeAssistantToolUI,
   type ToolCallMessagePartComponent,
 } from "@assistant-ui/react";
 import type { ReactNode } from "react";
@@ -143,12 +143,11 @@ const MessageDataAnalystToolRender: ToolCallMessagePartComponent<
   }
 };
 
-export const MessageDataAnalystTool = makeAssistantTool<
+export const MessageDataAnalystTool = makeAssistantToolUI<
   MessageDataAnalystArgs,
   MessageDataAnalystResult
 >({
   toolName: "message_data_analyst",
-  type: "backend",
   render: MessageDataAnalystToolRender,
 });
 
