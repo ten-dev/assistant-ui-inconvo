@@ -46,6 +46,7 @@ export const Thread: FC = () => {
           }}
         >
           <ThreadPrimitive.Viewport
+            autoScroll={false}
             turnAnchor="top"
             className="aui-thread-viewport relative flex flex-1 flex-col overflow-x-auto overflow-y-scroll scroll-smooth px-4 pt-4"
           >
@@ -362,7 +363,7 @@ const BranchPicker: FC<BranchPickerPrimitive.Root.Props> = ({
       hideWhenSingleBranch
       className={cn(
         "aui-branch-picker-root mr-2 -ml-2 inline-flex items-center text-xs text-muted-foreground",
-        className,
+        className
       )}
       {...rest}
     >

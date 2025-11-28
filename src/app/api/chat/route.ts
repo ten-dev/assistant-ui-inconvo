@@ -1,5 +1,5 @@
 import { openai } from "@ai-sdk/openai";
-import { streamText, convertToModelMessages, tool } from "ai";
+import { streamText, convertToModelMessages, tool, stepCountIs } from "ai";
 import type { UIMessage } from "ai";
 import { frontendTools } from "@assistant-ui/react-ai-sdk";
 // import { chatWithDataTools } from "@inconvo/data-chat-tools-ai-sdk";
@@ -39,6 +39,7 @@ export async function POST(req: Request) {
 
   const result = streamText({
     model: openai("gpt-5.1-chat-latest"),
+    stopWhen: stepCountIs(5),
     system, // Use the system message from the frontend if provided
     messages: convertToModelMessages(messages),
     tools: {
@@ -105,8 +106,7 @@ export async function POST(req: Request) {
           if (!finalResponse) {
             throw new Error("No response received from Inconvo");
           }
-          const contentText = normalizeResponseToText(finalResponse);
-          return contentText;
+          return JSON.stringify(finalResponse);
         },
       }),
     },
