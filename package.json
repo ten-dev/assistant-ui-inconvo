@@ -16,6 +16,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@ai-sdk/azure": "^2.0.77",
     "@ai-sdk/openai": "^2.0.74",
     "@assistant-ui/react": "^0.11.45",
     "@assistant-ui/react-ai-sdk": "^1.1.14",

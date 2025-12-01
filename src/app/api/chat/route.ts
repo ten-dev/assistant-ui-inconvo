@@ -1,4 +1,5 @@
 import { openai } from "@ai-sdk/openai";
+import { azure } from "@ai-sdk/azure";
 import { streamText, convertToModelMessages, tool, stepCountIs } from "ai";
 import type { UIMessage } from "ai";
 import { frontendTools } from "@assistant-ui/react-ai-sdk";
@@ -41,7 +42,7 @@ export async function POST(req: Request) {
   console.log(system);
 
   const result = streamText({
-    model: openai("gpt-5.1-chat-latest"),
+    model: azure("gpt-5.1-chat"),
     stopWhen: stepCountIs(5),
     system,
     messages: convertToModelMessages(messages),

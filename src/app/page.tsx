@@ -36,8 +36,8 @@ export default function HomePage() {
   return (
     <AssistantRuntimeProvider runtime={runtime}>
       <AssistantSidebar
-        mainPanelProps={{ defaultSize: 70, minSize: 40 }}
-        threadPanelProps={{ defaultSize: 30, minSize: 20 }}
+        mainPanelProps={{ defaultSize: 60, minSize: 30 }}
+        threadPanelProps={{ defaultSize: 40, minSize: 20 }}
       >
         <main className="flex min-h-screen flex-col items-center justify-center bg-background text-foreground transition-colors">
           <div className="container flex flex-col items-center justify-center gap-8 px-4 py-16 text-center">
