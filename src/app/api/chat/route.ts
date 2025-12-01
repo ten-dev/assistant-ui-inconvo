@@ -2,7 +2,7 @@ import { azure } from "@ai-sdk/azure";
 import { streamText, convertToModelMessages, tool, stepCountIs } from "ai";
 import type { UIMessage } from "ai";
 import { frontendTools } from "@assistant-ui/react-ai-sdk";
-// import { chatWithDataTools } from "@inconvo/data-chat-tools-ai-sdk";
+// import { inconvoTools } from "@inconvoai/ai-sdk";
 import { z } from "zod";
 import Inconvo from "@inconvoai/node";
 
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     tools?: any; // Frontend tools forwarded from AssistantChatTransport
   } = await req.json();
 
-  // TODO: get the user context from the request (e.g., auth token)
+  // In production get the user context from the request (e.g., auth token)
   const userContext = {
     organisationId: 1,
   };
@@ -37,8 +37,6 @@ export async function POST(req: Request) {
     `Do not repeat information already provided by the analyst in your user message`,
   ].join("\n");
 
-  console.log(system);
-
   const result = streamText({
     model: azure("gpt-5.1-chat"),
     stopWhen: stepCountIs(5),
@@ -48,25 +46,13 @@ export async function POST(req: Request) {
       // Wrap frontend tools with frontendTools helper
       ...frontendTools(tools),
       // Backend tools
-      get_current_weather: tool({
-        description: "Get the current weather",
-        inputSchema: z.object({
-          city: z.string(),
-        }),
-        execute: async ({ city }) => {
-          return `The weather in ${city} is sunny`;
-        },
-      }),
       get_data_summary: tool({
         description:
           "Use this tool before you ask your first question. You will get a high level summary of the connected data. This can be used to get an overview of the data before asking more specific questions.",
         inputSchema: z.object({}),
         execute: async () => {
-          return `• organisations - Stores information about organizations including their name and creation date.
-• users - Contains user details such as contact info, location, and association with an organization.
-• products - Holds product data including category, price, stock level, and linked organization.
-• orders - Records purchase transactions linking users, products, and organizations with pricing details.
-• reviews - Captures user ratings and comments on products within organizations.`;
+          const { dataSummary } = await inconvo.agents.dataSummary.retrieve();
+          return dataSummary;
         },
       }),
       start_data_analyst_conversation: tool({
