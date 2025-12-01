@@ -128,9 +128,9 @@ const ThreadSuggestions: FC = () => {
           action: "What tools can you use?",
         },
         {
-          title: "Explain React hooks",
-          label: "like useState and useEffect",
-          action: "Explain React hooks like useState and useEffect",
+          title: "What data",
+          label: "do you have access to?",
+          action: "What data do you have access to?",
         },
       ].map((suggestedAction, index) => (
         <m.div

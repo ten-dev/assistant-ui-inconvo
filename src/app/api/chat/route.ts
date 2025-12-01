@@ -1,4 +1,3 @@
-import { openai } from "@ai-sdk/openai";
 import { azure } from "@ai-sdk/azure";
 import { streamText, convertToModelMessages, tool, stepCountIs } from "ai";
 import type { UIMessage } from "ai";
@@ -6,7 +5,6 @@ import { frontendTools } from "@assistant-ui/react-ai-sdk";
 // import { chatWithDataTools } from "@inconvo/data-chat-tools-ai-sdk";
 import { z } from "zod";
 import Inconvo from "@inconvoai/node";
-import type { ResponseCreateResponse } from "@inconvoai/node/resources/conversations";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
