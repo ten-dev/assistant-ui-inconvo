@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useTheme } from "next-themes";
 import {
   ResponsiveContainer,
   BarChart as RechartsBarChart,
@@ -17,17 +18,42 @@ import type { InconvoChartData } from "~/lib/inconvo/types";
 
 interface InconvoBarChartProps {
   data: InconvoChartData;
-  title?: string;
   xLabel?: string;
   yLabel?: string;
 }
 
+const clamp = (value: number, min = 0, max = 1) =>
+  Math.min(Math.max(value, min), max);
+
+const lightnessToGrayHex = (lightness: number) => {
+  const channel = Math.round(clamp(lightness) * 255)
+    .toString(16)
+    .padStart(2, "0");
+  return `#${channel}${channel}${channel}`;
+};
+
+const buildGreyscalePalette = (seriesCount: number, isDarkMode: boolean) => {
+  if (seriesCount <= 0) return [];
+  if (seriesCount === 1) {
+    return [lightnessToGrayHex(isDarkMode ? 0.78 : 0.5)];
+  }
+
+  const start = isDarkMode ? 0.95 : 0.8;
+  const end = isDarkMode ? 0.55 : 0.15;
+  const step = (end - start) / (seriesCount - 1);
+
+  return Array.from({ length: seriesCount }, (_, index) =>
+    lightnessToGrayHex(start + step * index)
+  );
+};
+
 export const InconvoBarChart = ({
   data,
-  title,
   xLabel,
   yLabel,
 }: InconvoBarChartProps) => {
+  const { resolvedTheme } = useTheme();
+
   const chartData = useMemo(() => {
     return data.labels.map((label, index) => {
       const row: { name: string; [key: string]: string | number } = {
@@ -40,7 +66,10 @@ export const InconvoBarChart = ({
     });
   }, [data]);
 
-  const palette = useMemo(() => ["var(--chart-series-primary)"], []);
+  const palette = useMemo(() => {
+    const isDarkMode = resolvedTheme === "dark";
+    return buildGreyscalePalette(data.datasets.length, isDarkMode);
+  }, [data.datasets.length, resolvedTheme]);
 
   const axisColor = "var(--muted-foreground)";
   const textColor = "var(--foreground)";
@@ -114,7 +143,7 @@ export const InconvoBarChart = ({
             <Bar
               key={dataset.name}
               dataKey={dataset.name}
-              fill={palette[index % palette.length]}
+              fill={palette[index] ?? "var(--chart-series-primary)"}
               radius={[4, 4, 0, 0]}
               maxBarSize={48}
             />
