@@ -115,7 +115,7 @@ export const InconvoChart = ({
         name: label,
       };
       data.datasets.forEach((dataset) => {
-        row[dataset.name] = dataset.values[index];
+        row[dataset.name] = dataset.values[index] ?? 0;
       });
       return row;
     });
