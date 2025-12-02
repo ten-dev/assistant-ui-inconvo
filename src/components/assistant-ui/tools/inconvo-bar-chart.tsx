@@ -40,22 +40,13 @@ export const InconvoBarChart = ({
     });
   }, [data]);
 
-  const palette = useMemo(
-    () => ["var(--chart-series-primary)"],
-    [],
-  );
+  const palette = useMemo(() => ["var(--chart-series-primary)"], []);
 
   const axisColor = "var(--muted-foreground)";
   const textColor = "var(--foreground)";
 
   return (
     <div className="flex w-full flex-col gap-4 text-foreground">
-      {title ? (
-        <h3 className="text-lg font-semibold leading-snug text-foreground">
-          {title}
-        </h3>
-      ) : null}
-
       <ResponsiveContainer width="100%" height={400}>
         <RechartsBarChart
           data={chartData}
