@@ -162,9 +162,6 @@ export const AssistantThreadList: FC = () => {
           )}
 
           <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">
-              {threadCount} total thread{threadCount === 1 ? "" : "s"}
-            </span>
             <Button
               type="button"
               variant="link"
