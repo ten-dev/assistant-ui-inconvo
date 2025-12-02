@@ -7,8 +7,7 @@ import {
 } from "@assistant-ui/react";
 import type { ReactNode } from "react";
 
-import { InconvoBarChart } from "~/components/assistant-ui/tools/inconvo-bar-chart";
-import { InconvoLineChart } from "~/components/assistant-ui/tools/inconvo-line-chart";
+import { InconvoChart } from "~/components/assistant-ui/tools/inconvo-chart";
 import { DataTable } from "~/components/assistant-ui/tools/inconvo-data-table";
 import {
   type InconvoResponse,
@@ -96,30 +95,19 @@ const MessageDataAnalystToolRender: ToolCallMessagePartComponent<
           </ToolCard>
         );
       }
-      const chartComponent =
-        parsed.chart.type === "line" ? (
-          <InconvoLineChart
-            data={parsed.chart.data}
-            title={parsed.chart.title}
-            xLabel={parsed.chart.xLabel}
-            yLabel={parsed.chart.yLabel}
-          />
-        ) : (
-          <InconvoBarChart
-            data={parsed.chart.data}
-            title={parsed.chart.title}
-            xLabel={parsed.chart.xLabel}
-            yLabel={parsed.chart.yLabel}
-          />
-        );
-
       return (
         <ToolCard>
           <ToolCardHeader
             title={parsed.chart.title ?? "Chart"}
             description={parsed.message}
           />
-          {chartComponent}
+          <InconvoChart
+            data={parsed.chart.data}
+            variant={parsed.chart.type}
+            title={parsed.chart.title}
+            xLabel={parsed.chart.xLabel}
+            yLabel={parsed.chart.yLabel}
+          />
         </ToolCard>
       );
     case "table":

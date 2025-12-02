@@ -3,7 +3,7 @@ import { streamText, convertToModelMessages, stepCountIs } from "ai";
 import type { UIMessage } from "ai";
 import { frontendTools } from "@assistant-ui/react-ai-sdk";
 import Inconvo from "@inconvoai/node";
-import { inconvoTools } from "@ten-dev/node-ai-sdk";
+import { inconvoTools } from "@inconvoai/node-ai-sdk";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
