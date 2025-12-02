@@ -261,9 +261,9 @@ const ThreadHistoryRow: FC<ThreadHistoryRowProps> = ({ filter, onSelect }) => {
   }
 
   return (
-    <ThreadListItemPrimitive.Root className="group/history-item block w-full border-b border-border/20 last:border-b-0">
+    <ThreadListItemPrimitive.Root className="group/history-item block w-full">
       <ThreadListItemPrimitive.Trigger
-        className="flex w-full items-center gap-3 px-3 py-2 text-left text-sm transition hover:bg-muted/50"
+        className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm transition hover:bg-black/10"
         onClick={onSelect}
       >
         <span className="truncate font-medium">{title}</span>
