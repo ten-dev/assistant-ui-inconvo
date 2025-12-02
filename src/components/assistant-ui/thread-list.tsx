@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type FC } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FC,
+} from "react";
 import {
   ThreadListPrimitive,
   ThreadListItemPrimitive,
@@ -106,15 +113,20 @@ export const AssistantThreadList: FC = () => {
     []
   );
 
+  const handleHistorySelect = useCallback(() => {
+    setHistoryOpen(false);
+    setSearchTerm("");
+  }, [setHistoryOpen, setSearchTerm]);
+
   const historyComponents = useMemo(() => {
     const FilteredRow: FC = () => (
       <ThreadHistoryRow
         filter={normalizedSearchTerm}
-        onSelect={() => setHistoryOpen(false)}
+        onSelect={handleHistorySelect}
       />
     );
     return { ThreadListItem: FilteredRow };
-  }, [normalizedSearchTerm]);
+  }, [normalizedSearchTerm, handleHistorySelect]);
 
   return (
     <ThreadListPrimitive.Root
