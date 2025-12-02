@@ -27,6 +27,8 @@ import {
 } from "~/components/ui/popover";
 
 const MAX_VISIBLE_THREADS = 3;
+const MAX_HISTORY_THREADS = 20;
+const UNTITLED_THREAD_TITLE = "Untitled conversation";
 
 export const AssistantThreadList: FC = () => {
   const threadIds = useAssistantState(({ threads }) => threads.threadIds);
@@ -59,19 +61,39 @@ export const AssistantThreadList: FC = () => {
     () => threadItems.find((item) => item.id === mainThreadId),
     [threadItems, mainThreadId]
   );
-  const currentTitle = currentThread?.title ?? "Untitled conversation";
+  const currentTitle = currentThread?.title ?? UNTITLED_THREAD_TITLE;
   const showCompact = currentThread?.status !== "new" && threadCount > 0;
+  const threadTitlesById = useMemo(() => {
+    return threadItems.reduce<Record<string, string>>((acc, item) => {
+      acc[item.id] = item.title ?? UNTITLED_THREAD_TITLE;
+      return acc;
+    }, {});
+  }, [threadItems]);
+  const normalizedSearchTerm = searchTerm.trim().toLowerCase();
   const filteredCount = useMemo(() => {
-    if (!searchTerm) return threadItems.length;
-    const term = searchTerm.toLowerCase();
-    return threadItems.filter((item) =>
-      (item.title ?? "Untitled conversation").toLowerCase().includes(term)
-    ).length;
-  }, [searchTerm, threadItems]);
+    if (!normalizedSearchTerm) return threadIds.length;
+    return threadIds.reduce((count, threadId) => {
+      const title = (threadTitlesById[threadId] ?? UNTITLED_THREAD_TITLE).toLowerCase();
+      return title.includes(normalizedSearchTerm) ? count + 1 : count;
+    }, 0);
+  }, [normalizedSearchTerm, threadIds, threadTitlesById]);
 
   const visibleIndexes = useMemo(() => {
     return Array.from({ length: visibleCount }, (_, index) => index);
   }, [visibleCount]);
+
+  const historyIndexes = useMemo(() => {
+    const matches: number[] = [];
+    for (let index = 0; index < threadIds.length; index++) {
+      if (matches.length >= MAX_HISTORY_THREADS) break;
+      const threadId = threadIds[index];
+      const title = (threadTitlesById[threadId] ?? UNTITLED_THREAD_TITLE).toLowerCase();
+      if (!normalizedSearchTerm || title.includes(normalizedSearchTerm)) {
+        matches.push(index);
+      }
+    }
+    return matches;
+  }, [normalizedSearchTerm, threadIds, threadTitlesById]);
 
   const threadListComponents = useMemo(
     () => ({
@@ -83,12 +105,12 @@ export const AssistantThreadList: FC = () => {
   const historyComponents = useMemo(() => {
     const FilteredRow: FC = () => (
       <ThreadHistoryRow
-        filter={searchTerm}
+        filter={normalizedSearchTerm}
         onSelect={() => setHistoryOpen(false)}
       />
     );
     return { ThreadListItem: FilteredRow };
-  }, [searchTerm]);
+  }, [normalizedSearchTerm]);
 
   return (
     <ThreadListPrimitive.Root
@@ -153,7 +175,15 @@ export const AssistantThreadList: FC = () => {
                   ) : filteredCount === 0 ? (
                     <EmptySearchState />
                   ) : (
-                    <ThreadListPrimitive.Items components={historyComponents} />
+                    <div>
+                      {historyIndexes.map((index) => (
+                        <ThreadListPrimitive.ItemByIndex
+                          key={index}
+                          index={index}
+                          components={historyComponents}
+                        />
+                      ))}
+                    </div>
                   )}
                 </div>
               </div>
@@ -205,7 +235,7 @@ const ThreadListRow: FC = () => {
         <ThreadListItemPrimitive.Trigger className="flex w-full items-center gap-3 px-2 py-1.5 text-left text-sm">
           <div className="flex flex-1 overflow-hidden">
             <span className="truncate font-medium">
-              <ThreadListItemPrimitive.Title fallback="Untitled conversation" />
+              <ThreadListItemPrimitive.Title fallback={UNTITLED_THREAD_TITLE} />
             </span>
           </div>
           <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground opacity-0 transition group-hover/thread-item:opacity-100 group-data-[active=true]/thread-item:text-primary group-data-[active=true]/thread-item:opacity-100" />
@@ -222,7 +252,7 @@ type ThreadHistoryRowProps = {
 
 const ThreadHistoryRow: FC<ThreadHistoryRowProps> = ({ filter, onSelect }) => {
   const title = useAssistantState(
-    ({ threadListItem }) => threadListItem.title ?? "Untitled conversation"
+    ({ threadListItem }) => threadListItem.title ?? UNTITLED_THREAD_TITLE
   );
 
   if (filter && !title.toLowerCase().includes(filter.toLowerCase())) {
