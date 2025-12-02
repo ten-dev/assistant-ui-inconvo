@@ -20,20 +20,38 @@ import {
   TooltipTrigger,
 } from "~/components/ui/tooltip";
 import { TooltipIconButton } from "~/components/assistant-ui/tooltip-icon-button";
-import { cn } from "~/lib/utils";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
 
 const MAX_VISIBLE_THREADS = 3;
 
 export const AssistantThreadList: FC = () => {
   const threadIds = useAssistantState(({ threads }) => threads.threadIds);
   const isLoading = useAssistantState(({ threads }) => threads.isLoading);
+  const threadItems = useAssistantState(({ threads }) => threads.threadItems);
+  const mainThreadId = useAssistantState(({ threads }) => threads.mainThreadId);
 
-  const [showAll, setShowAll] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
   const threadCount = threadIds.length;
-  const canToggle = threadCount > MAX_VISIBLE_THREADS;
-  const visibleCount = showAll
-    ? threadCount
-    : Math.min(threadCount, MAX_VISIBLE_THREADS);
+  const visibleCount = Math.min(threadCount, MAX_VISIBLE_THREADS);
+  const currentThread = useMemo(
+    () => threadItems.find((item) => item.id === mainThreadId),
+    [threadItems, mainThreadId]
+  );
+  const currentTitle = currentThread?.title ?? "Untitled conversation";
+  const showCompact = currentThread?.status !== "new" && threadCount > 0;
+  const filteredCount = useMemo(() => {
+    if (!searchTerm) return threadItems.length;
+    const term = searchTerm.toLowerCase();
+    return threadItems.filter((item) =>
+      (item.title ?? "Untitled conversation").toLowerCase().includes(term)
+    ).length;
+  }, [searchTerm, threadItems]);
 
   const visibleIndexes = useMemo(() => {
     return Array.from({ length: visibleCount }, (_, index) => index);
@@ -46,67 +64,119 @@ export const AssistantThreadList: FC = () => {
     []
   );
 
-  const toggleHistory = () => {
-    if (!canToggle) return;
-    setShowAll((prev) => !prev);
-  };
+  const historyComponents = useMemo(() => {
+    const FilteredRow: FC = () => (
+      <ThreadHistoryRow
+        filter={searchTerm}
+        onSelect={() => setHistoryOpen(false)}
+      />
+    );
+    return { ThreadListItem: FilteredRow };
+  }, [searchTerm]);
 
   return (
-    <ThreadListPrimitive.Root className="aui-thread-list flex flex-col gap-3 rounded-2xl border border-border/30 bg-background/50 p-3 shadow-sm">
-      <div className="flex items-center justify-between gap-2 border-b border-border/40 pb-2">
+    <ThreadListPrimitive.Root
+      className={`aui-thread-list flex flex-col rounded-2xl border border-border/30 bg-background/50 shadow-sm ${
+        showCompact ? "gap-2 p-2" : "gap-3 p-3"
+      }`}
+    >
+      <div
+        className={`flex items-center justify-between gap-2 ${
+          showCompact ? "" : "border-b border-border/40 pb-2"
+        }`}
+      >
         <div className="flex flex-col">
-          <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            Threads
-          </span>
+          {showCompact ? (
+            <span className="truncate text-sm font-semibold text-foreground">
+              {currentTitle}
+            </span>
+          ) : (
+            <>
+              <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                Threads
+              </span>
+              <span className="text-base font-semibold">
+                Recent conversations
+              </span>
+            </>
+          )}
         </div>
         <div className="flex items-center gap-2">
-          <TooltipIconButton
-            tooltip={showAll ? "Show less" : "View entire history"}
-            aria-pressed={showAll}
-            aria-label="Toggle history view"
-            onClick={toggleHistory}
-            disabled={!canToggle}
-            className={cn(
-              "border border-transparent text-muted-foreground transition",
-              showAll && "bg-accent text-foreground"
-            )}
-          >
-            <Clock4Icon className="size-4" />
-          </TooltipIconButton>
+          <Popover open={historyOpen} onOpenChange={setHistoryOpen}>
+            <PopoverTrigger asChild>
+              <TooltipIconButton
+                tooltip="Search history"
+                aria-label="Search history"
+                className="border border-transparent text-muted-foreground transition"
+              >
+                <Clock4Icon className="size-4" />
+              </TooltipIconButton>
+            </PopoverTrigger>
+            <PopoverContent
+              align="end"
+              className="w-96 border border-border/30 p-0"
+            >
+              <div className="flex flex-col gap-2 p-3">
+                <div className="rounded-2xl border border-border/30 bg-muted/20 px-3 py-2 text-sm text-muted-foreground">
+                  <input
+                    type="text"
+                    placeholder="Search recent threads"
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                    autoFocus
+                    className="w-full bg-transparent text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none"
+                  />
+                </div>
+                <div className="max-h-80 overflow-y-auto rounded-2xl border border-border/20 bg-background/90">
+                  {threadCount === 0 ? (
+                    <EmptyState />
+                  ) : filteredCount === 0 ? (
+                    <EmptySearchState />
+                  ) : (
+                    <ThreadListPrimitive.Items components={historyComponents} />
+                  )}
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
           <NewThreadButton />
         </div>
       </div>
 
-      {isLoading ? (
-        <ThreadListSkeleton />
-      ) : threadCount === 0 ? (
-        <EmptyState />
-      ) : (
-        <ul className="flex flex-col gap-1">
-          {visibleIndexes.map((index) => (
-            <ThreadListPrimitive.ItemByIndex
-              key={index}
-              index={index}
-              components={threadListComponents}
-            />
-          ))}
-        </ul>
-      )}
+      {!showCompact && (
+        <>
+          {isLoading ? (
+            <ThreadListSkeleton />
+          ) : threadCount === 0 ? (
+            <EmptyState />
+          ) : (
+            <ul className="flex flex-col gap-1">
+              {visibleIndexes.map((index) => (
+                <ThreadListPrimitive.ItemByIndex
+                  key={index}
+                  index={index}
+                  components={threadListComponents}
+                />
+              ))}
+            </ul>
+          )}
 
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">
-          {threadCount} total thread{threadCount === 1 ? "" : "s"}
-        </span>
-        <Button
-          type="button"
-          variant="link"
-          className="px-0 text-sm"
-          onClick={toggleHistory}
-          disabled={!canToggle}
-        >
-          {showAll ? "Show less" : `View all (${threadCount})`}
-        </Button>
-      </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">
+              {threadCount} total thread{threadCount === 1 ? "" : "s"}
+            </span>
+            <Button
+              type="button"
+              variant="link"
+              className="px-0 text-sm"
+              onClick={() => setHistoryOpen(true)}
+              disabled={threadCount === 0}
+            >
+              {`View all (${threadCount})`}
+            </Button>
+          </div>
+        </>
+      )}
     </ThreadListPrimitive.Root>
   );
 };
@@ -128,6 +198,32 @@ const ThreadListRow: FC = () => {
   );
 };
 
+type ThreadHistoryRowProps = {
+  filter: string;
+  onSelect?: () => void;
+};
+
+const ThreadHistoryRow: FC<ThreadHistoryRowProps> = ({ filter, onSelect }) => {
+  const title = useAssistantState(
+    ({ threadListItem }) => threadListItem.title ?? "Untitled conversation"
+  );
+
+  if (filter && !title.toLowerCase().includes(filter.toLowerCase())) {
+    return null;
+  }
+
+  return (
+    <ThreadListItemPrimitive.Root className="group/history-item block w-full border-b border-border/20 last:border-b-0">
+      <ThreadListItemPrimitive.Trigger
+        className="flex w-full items-center gap-3 px-3 py-2 text-left text-sm transition hover:bg-muted/50"
+        onClick={onSelect}
+      >
+        <span className="truncate font-medium">{title}</span>
+      </ThreadListItemPrimitive.Trigger>
+    </ThreadListItemPrimitive.Root>
+  );
+};
+
 const EmptyState: FC = () => {
   return (
     <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-border/40 px-4 py-6 text-center">
@@ -138,6 +234,15 @@ const EmptyState: FC = () => {
           Start a new chat to see it appear in your history.
         </p>
       </div>
+    </div>
+  );
+};
+
+const EmptySearchState: FC = () => {
+  return (
+    <div className="flex flex-col items-center gap-2 px-4 py-6 text-center">
+      <SparklesIcon className="size-5 text-muted-foreground" />
+      <p className="text-sm text-muted-foreground">No matching threads</p>
     </div>
   );
 };
