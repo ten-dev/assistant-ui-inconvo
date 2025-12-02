@@ -3,15 +3,29 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTheme } from "next-themes";
 import { AssistantSidebar } from "~/components/assistant-ui/assistant-sidebar";
-import { AssistantRuntimeProvider } from "@assistant-ui/react";
+import { AssistantRuntimeProvider, AssistantCloud } from "@assistant-ui/react";
 import {
   useChatRuntime,
   AssistantChatTransport,
 } from "@assistant-ui/react-ai-sdk";
 import { Button } from "~/components/ui/button";
 
+const assistantCloudBaseUrl = process.env.NEXT_PUBLIC_ASSISTANT_BASE_URL;
+
+if (!assistantCloudBaseUrl) {
+  throw new Error(
+    "NEXT_PUBLIC_ASSISTANT_BASE_URL is not set. Please configure it to enable Assistant UI Cloud persistence.",
+  );
+}
+
+const cloud = new AssistantCloud({
+  baseUrl: assistantCloudBaseUrl,
+  anonymous: true,
+});
+
 export default function HomePage() {
   const runtime = useChatRuntime({
+    cloud,
     transport: new AssistantChatTransport({
       api: "/api/chat",
     }),
