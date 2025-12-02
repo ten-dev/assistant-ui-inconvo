@@ -73,7 +73,9 @@ export const AssistantThreadList: FC = () => {
   const filteredCount = useMemo(() => {
     if (!normalizedSearchTerm) return threadIds.length;
     return threadIds.reduce((count, threadId) => {
-      const title = (threadTitlesById[threadId] ?? UNTITLED_THREAD_TITLE).toLowerCase();
+      const title = (
+        threadTitlesById[threadId] ?? UNTITLED_THREAD_TITLE
+      ).toLowerCase();
       return title.includes(normalizedSearchTerm) ? count + 1 : count;
     }, 0);
   }, [normalizedSearchTerm, threadIds, threadTitlesById]);
@@ -87,7 +89,9 @@ export const AssistantThreadList: FC = () => {
     for (let index = 0; index < threadIds.length; index++) {
       if (matches.length >= MAX_HISTORY_THREADS) break;
       const threadId = threadIds[index];
-      const title = (threadTitlesById[threadId] ?? UNTITLED_THREAD_TITLE).toLowerCase();
+      const title = (
+        threadTitlesById[threadId] ?? UNTITLED_THREAD_TITLE
+      ).toLowerCase();
       if (!normalizedSearchTerm || title.includes(normalizedSearchTerm)) {
         matches.push(index);
       }
@@ -133,9 +137,6 @@ export const AssistantThreadList: FC = () => {
             <>
               <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
                 Threads
-              </span>
-              <span className="text-base font-semibold">
-                Recent conversations
               </span>
             </>
           )}
