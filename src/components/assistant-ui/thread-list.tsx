@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type FC } from "react";
+import { useEffect, useMemo, useRef, useState, type FC } from "react";
 import {
   ThreadListPrimitive,
   ThreadListItemPrimitive,
@@ -36,6 +36,22 @@ export const AssistantThreadList: FC = () => {
 
   const [historyOpen, setHistoryOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const sidebarRef = useRef<HTMLDivElement | null>(null);
+  const [popoverWidth, setPopoverWidth] = useState<number>();
+
+  useEffect(() => {
+    const element = sidebarRef.current;
+    if (!element) return;
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (entry) {
+        setPopoverWidth(entry.contentRect.width);
+      }
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
 
   const threadCount = threadIds.length;
   const visibleCount = Math.min(threadCount, MAX_VISIBLE_THREADS);
@@ -76,6 +92,7 @@ export const AssistantThreadList: FC = () => {
 
   return (
     <ThreadListPrimitive.Root
+      ref={sidebarRef}
       className={`aui-thread-list flex flex-col rounded-2xl border border-border/30 bg-background/50 shadow-sm ${
         showCompact ? "gap-2 p-2" : "gap-3 p-3"
       }`}
@@ -113,8 +130,11 @@ export const AssistantThreadList: FC = () => {
               </TooltipIconButton>
             </PopoverTrigger>
             <PopoverContent
-              align="end"
-              className="w-96 border border-border/30 p-0"
+              align="start"
+              className="border border-border/30 p-0"
+              style={{
+                width: popoverWidth! + 50,
+              }}
             >
               <div className="flex flex-col gap-2 p-3">
                 <div className="rounded-2xl border border-border/30 bg-muted/20 px-3 py-2 text-sm text-muted-foreground">
