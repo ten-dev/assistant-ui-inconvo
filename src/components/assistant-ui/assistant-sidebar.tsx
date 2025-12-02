@@ -6,6 +6,7 @@ import {
 import type { ComponentProps, FC, PropsWithChildren } from "react";
 
 import { Thread } from "~/components/assistant-ui/thread";
+import { AssistantThreadList } from "~/components/assistant-ui/thread-list";
 
 type PanelProps = Omit<ComponentProps<typeof ResizablePanel>, "children">;
 type PanelGroupProps = Omit<
@@ -32,7 +33,12 @@ export const AssistantSidebar: FC<AssistantSidebarProps> = ({
       <ResizablePanel {...mainPanelProps}>{children}</ResizablePanel>
       <ResizableHandle />
       <ResizablePanel {...threadPanelProps}>
-        <Thread />
+        <div className="flex h-full flex-col gap-4 bg-background/80 p-4">
+          <AssistantThreadList />
+          <div className="flex-1 overflow-hidden rounded-3xl border border-border/40 bg-background/80">
+            <Thread />
+          </div>
+        </div>
       </ResizablePanel>
     </ResizablePanelGroup>
   );
