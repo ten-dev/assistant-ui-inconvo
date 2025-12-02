@@ -90,7 +90,7 @@ export const AssistantThreadList: FC = () => {
       if (matches.length >= MAX_HISTORY_THREADS) break;
       const threadId = threadIds[index];
       const title = (
-        threadTitlesById[threadId] ?? UNTITLED_THREAD_TITLE
+        threadTitlesById[threadId!] ?? UNTITLED_THREAD_TITLE
       ).toLowerCase();
       if (!normalizedSearchTerm || title.includes(normalizedSearchTerm)) {
         matches.push(index);
@@ -153,10 +153,10 @@ export const AssistantThreadList: FC = () => {
               </TooltipIconButton>
             </PopoverTrigger>
             <PopoverContent
-              align="start"
-              className="border border-border/30 p-0"
+              align="end"
+              className="border border-border/30 bg-muted p-0"
               style={{
-                width: popoverWidth! + 50,
+                width: popoverWidth! - 25,
               }}
             >
               <div className="flex flex-col gap-2 p-3">
@@ -170,7 +170,7 @@ export const AssistantThreadList: FC = () => {
                     className="w-full bg-transparent text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none"
                   />
                 </div>
-                <div className="max-h-80 overflow-y-auto rounded-2xl border border-border/20 bg-background/90">
+                <div className="max-h-80 overflow-y-auto rounded-2xl border border-border/20 bg-muted">
                   {threadCount === 0 ? (
                     <EmptyState />
                   ) : filteredCount === 0 ? (
