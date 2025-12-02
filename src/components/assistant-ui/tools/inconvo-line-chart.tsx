@@ -4,8 +4,8 @@ import { useMemo } from "react";
 import { useTheme } from "next-themes";
 import {
   ResponsiveContainer,
-  BarChart as RechartsBarChart,
-  Bar,
+  LineChart as RechartsLineChart,
+  Line,
   CartesianGrid,
   Tooltip,
   XAxis,
@@ -17,17 +17,17 @@ import {
 import type { InconvoChartData } from "~/lib/inconvo/types";
 import { buildGreyscalePalette } from "~/components/assistant-ui/tools/inconvo-chart-colors";
 
-interface InconvoBarChartProps {
+interface InconvoLineChartProps {
   data: InconvoChartData;
   xLabel?: string;
   yLabel?: string;
 }
 
-export const InconvoBarChart = ({
+export const InconvoLineChart = ({
   data,
   xLabel,
   yLabel,
-}: InconvoBarChartProps) => {
+}: InconvoLineChartProps) => {
   const { resolvedTheme } = useTheme();
 
   const chartData = useMemo(() => {
@@ -53,7 +53,7 @@ export const InconvoBarChart = ({
   return (
     <div className="flex w-full flex-col gap-4 text-foreground">
       <ResponsiveContainer width="100%" height={400}>
-        <RechartsBarChart
+        <RechartsLineChart
           data={chartData}
           margin={{ top: 20, right: 30, bottom: xLabel ? 80 : 40, left: 20 }}
         >
@@ -115,16 +115,21 @@ export const InconvoBarChart = ({
               paddingBottom: "4px",
             }}
           />
-          {data.datasets.map((dataset, index) => (
-            <Bar
-              key={dataset.name}
-              dataKey={dataset.name}
-              fill={palette[index] ?? "var(--chart-series-primary)"}
-              radius={[4, 4, 0, 0]}
-              maxBarSize={48}
-            />
-          ))}
-        </RechartsBarChart>
+          {data.datasets.map((dataset, index) => {
+            const stroke = palette[index] ?? "var(--chart-series-primary)";
+            return (
+              <Line
+                key={dataset.name}
+                type="monotone"
+                dataKey={dataset.name}
+                stroke={stroke}
+                strokeWidth={2}
+                dot={{ r: 3, strokeWidth: 2, stroke, fill: "var(--card)" }}
+                activeDot={{ r: 5, strokeWidth: 2, stroke, fill: stroke }}
+              />
+            );
+          })}
+        </RechartsLineChart>
       </ResponsiveContainer>
     </div>
   );
