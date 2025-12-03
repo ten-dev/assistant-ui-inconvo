@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, type ReactNode } from "react";
-import { useTheme } from "next-themes";
 import {
   ResponsiveContainer,
   LineChart as RechartsLineChart,
@@ -17,7 +16,7 @@ import {
 } from "recharts";
 
 import type { InconvoChartData, InconvoChartType } from "~/lib/inconvo/types";
-import { buildGreyscalePalette } from "~/components/assistant-ui/tools/inconvo-chart-colors";
+import { buildChartPalette } from "~/components/assistant-ui/tools/inconvo-chart-colors";
 
 interface InconvoChartProps {
   data: InconvoChartData;
@@ -107,8 +106,6 @@ export const InconvoChart = ({
   xLabel,
   yLabel,
 }: InconvoChartProps) => {
-  const { resolvedTheme } = useTheme();
-
   const chartData = useMemo(() => {
     return data.labels.map((label, index) => {
       const row: { name: string; [key: string]: string | number } = {
@@ -121,10 +118,10 @@ export const InconvoChart = ({
     });
   }, [data]);
 
-  const palette = useMemo(() => {
-    const isDarkMode = resolvedTheme === "dark";
-    return buildGreyscalePalette(data.datasets.length, isDarkMode);
-  }, [data.datasets.length, resolvedTheme]);
+  const palette = useMemo(
+    () => buildChartPalette(data.datasets.length),
+    [data.datasets.length],
+  );
 
   const axisColor = "var(--muted-foreground)";
   const textColor = "var(--foreground)";
