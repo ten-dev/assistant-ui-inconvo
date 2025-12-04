@@ -1,29 +1,85 @@
-# Create T3 App
+# Assistant UI + Inconvo Integration Demo
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+A Next.js application demonstrating the integration of [assistant-ui](https://github.com/Yonom/assistant-ui) with [Inconvo AI](https://inconvo.ai/) data analysis tools.
 
-## What's next? How do I make an app with this?
+## Overview
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+This project showcases how to build an AI assistant interface with advanced data analysis capabilities by combining:
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+- **Assistant UI** - React components for building conversational AI interfaces
+- **Inconvo AI SDK** - Data analysis and visualization tools for LLM applications
+- **Vercel AI SDK** - Streaming AI responses with tool calling support
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+## Features
+
+- Chat interface with sidebar and thread management
+- Data analyst conversation tools powered by Inconvo
+- Interactive charts (bar/line) and tables rendered directly in the chat
+- Theme toggle (light/dark mode) with system preference support
+- Streaming responses with OpenAI GPT integration
+
+## Key Components
+
+- **Assistant Sidebar** - Resizable panels for chat threads and main content
+- **Data Analyst Tools** - Hidden tools that enable data analysis conversations
+- **Chart Visualization** - Custom chart components using Recharts
+- **Data Tables** - Table rendering with sorting and filtering capabilities
+
+## Tech Stack
+
+- **Framework**: Next.js 15 with App Router
+- **UI**: Tailwind CSS, Radix UI, shadcn/ui
+- **AI**: Vercel AI SDK, OpenAI, Assistant UI
+- **Data Viz**: Recharts, Tanstack Table
+- **State**: Zustand
+- **Styling**: Tailwind CSS, next-themes
+
+## Getting Started
+
+```bash
+# Install dependencies
+npm install
+
+# Run development server
+npm run dev
+
+# Build for production
+npm run build
+npm start
+```
+
+Open [http://localhost:3000](http://localhost:3000) to see the application.
+
+## Environment Variables
+
+Create a `.env.local` file:
+
+```env
+# Optional: Assistant Cloud base URL
+NEXT_PUBLIC_ASSISTANT_BASE_URL=your_base_url
+
+# OpenAI API key (required for chat functionality)
+OPENAI_API_KEY=your_openai_api_key
+```
+
+## Project Structure
+
+- `/src/app` - Next.js app router pages and API routes
+- `/src/components/assistant-ui` - Chat UI components
+- `/src/components/assistant-ui/tools` - Inconvo tool integrations
+- `/src/components/ui` - Reusable UI components (buttons, dialogs, etc.)
+- `/src/lib` - Utilities and type definitions
+
+## API Integration
+
+The chat API endpoint (`/api/chat/route.ts`) integrates:
+- Frontend tools from assistant-ui
+- Inconvo tools for data analysis
+- OpenAI GPT models with streaming support
 
 ## Learn More
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
-
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
-
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
-
-## How do I deploy this?
-
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+- [Assistant UI Documentation](https://github.com/Yonom/assistant-ui)
+- [Inconvo AI Documentation](https://inconvo.ai/)
+- [Vercel AI SDK](https://sdk.vercel.ai/)
+- [Next.js Documentation](https://nextjs.org/docs)
