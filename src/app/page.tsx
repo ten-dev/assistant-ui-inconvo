@@ -12,20 +12,16 @@ import { Button } from "~/components/ui/button";
 
 const assistantCloudBaseUrl = process.env.NEXT_PUBLIC_ASSISTANT_BASE_URL;
 
-if (!assistantCloudBaseUrl) {
-  throw new Error(
-    "NEXT_PUBLIC_ASSISTANT_BASE_URL is not set. Please configure it to enable Assistant UI Cloud persistence.",
-  );
-}
-
-const cloud = new AssistantCloud({
-  baseUrl: assistantCloudBaseUrl,
-  anonymous: true,
-});
-
 export default function HomePage() {
   const runtime = useChatRuntime({
-    cloud,
+    ...(assistantCloudBaseUrl
+      ? {
+          cloud: new AssistantCloud({
+            baseUrl: assistantCloudBaseUrl,
+            anonymous: true,
+          }),
+        }
+      : {}),
     transport: new AssistantChatTransport({
       api: "/api/chat",
     }),
@@ -44,7 +40,9 @@ export default function HomePage() {
 
   const toggleLabel = useMemo(() => {
     if (!mounted) return "Toggle theme";
-    return resolvedTheme === "dark" ? "Switch to light mode" : "Switch to dark mode";
+    return resolvedTheme === "dark"
+      ? "Switch to light mode"
+      : "Switch to dark mode";
   }, [mounted, resolvedTheme]);
 
   return (
@@ -67,7 +65,8 @@ export default function HomePage() {
               Your <span className="text-primary">React</span> App
             </h1>
             <p className="max-w-xl text-base text-muted-foreground">
-              Toggle between light and dark themes to preview how the assistant UI adapts to your brand colors.
+              Toggle between light and dark themes to preview how the assistant
+              UI adapts to your brand colors.
             </p>
           </div>
         </main>
