@@ -1,14 +1,11 @@
-import { azure } from "@ai-sdk/azure";
+import { openai } from "@ai-sdk/openai";
 import { streamText, convertToModelMessages, stepCountIs } from "ai";
 import type { UIMessage } from "ai";
 import { frontendTools } from "@assistant-ui/react-ai-sdk";
-import Inconvo from "@inconvoai/node";
 import { inconvoTools } from "@inconvoai/node-ai-sdk";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
-
-const inconvo = new Inconvo();
 
 export async function POST(req: Request) {
   const {
@@ -27,15 +24,14 @@ export async function POST(req: Request) {
   };
 
   const result = streamText({
-    model: azure("gpt-5.1-chat"),
+    model: openai("gpt-5-chat-latest"),
     stopWhen: stepCountIs(5),
     system,
     messages: convertToModelMessages(messages),
     tools: {
       ...frontendTools(tools),
       ...inconvoTools({
-        inconvo,
-        getUserContext: async () => userContext,
+        userContext,
       }),
     },
   });
