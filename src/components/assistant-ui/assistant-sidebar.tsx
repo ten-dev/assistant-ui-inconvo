@@ -1,38 +1,15 @@
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "~/components/ui/resizable";
-import type { ComponentProps, FC, PropsWithChildren } from "react";
-
-import { Thread } from "~/components/assistant-ui/thread";
+import { Separator, ResizablePanel, Group } from "~/components/ui/resizable";
+import type { FC, PropsWithChildren } from "react";
 import { AssistantThreadList } from "~/components/assistant-ui/thread-list";
 
-type PanelProps = Omit<ComponentProps<typeof ResizablePanel>, "children">;
-type PanelGroupProps = Omit<
-  ComponentProps<typeof ResizablePanelGroup>,
-  "children"
->;
+import { Thread } from "~/components/assistant-ui/thread";
 
-type AssistantSidebarProps = PropsWithChildren<{
-  mainPanelProps?: PanelProps;
-  threadPanelProps?: PanelProps;
-  panelGroupProps?: PanelGroupProps;
-}>;
-
-export const AssistantSidebar: FC<AssistantSidebarProps> = ({
-  children,
-  mainPanelProps,
-  threadPanelProps,
-  panelGroupProps,
-}) => {
-  const { direction, ...groupProps } = panelGroupProps ?? {};
-
+export const AssistantSidebar: FC<PropsWithChildren> = ({ children }) => {
   return (
-    <ResizablePanelGroup direction={direction ?? "horizontal"} {...groupProps}>
-      <ResizablePanel {...mainPanelProps}>{children}</ResizablePanel>
-      <ResizableHandle />
-      <ResizablePanel {...threadPanelProps}>
+    <Group orientation="horizontal">
+      <ResizablePanel>{children}</ResizablePanel>
+      <Separator />
+      <ResizablePanel>
         <div className="flex h-full flex-col gap-4 bg-background/80 p-4">
           <AssistantThreadList />
           <div className="flex-1 overflow-hidden rounded-3xl border border-border/40 bg-background/80">
@@ -40,6 +17,6 @@ export const AssistantSidebar: FC<AssistantSidebarProps> = ({
           </div>
         </div>
       </ResizablePanel>
-    </ResizablePanelGroup>
+    </Group>
   );
 };
