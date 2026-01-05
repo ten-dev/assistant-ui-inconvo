@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
-import { VegaEmbed as VegaLite } from "react-vega";
+import { useEffect, useMemo, useState } from "react";
+import { VegaLite } from "react-vega";
 import type { VisualizationSpec } from "vega-embed";
 
 import type {
@@ -28,28 +28,38 @@ export const InconvoChart = ({
   yLabel,
   title,
 }: InconvoChartProps) => {
+  const [error, setError] = useState<string | null>(null);
+
   const tableData = useMemo(
     () =>
-      data
-        ? data.labels.flatMap((label, index) =>
-            data.datasets.map((dataset) => ({
-              label,
-              series: dataset.name,
-              value: dataset.values[index] ?? 0,
-            })),
-          )
-        : [],
-    [data],
+      data?.labels.flatMap((label, index) =>
+        data.datasets.map((dataset) => ({
+          label,
+          series: dataset.name,
+          value: dataset.values[index] ?? 0,
+        }))
+      ) ?? [],
+    [data?.datasets, data?.labels]
   );
 
   const palette = useMemo(
     () => buildChartPalette(data?.datasets.length ?? 0),
-    [data?.datasets.length],
+    [data?.datasets.length]
   );
 
   const axisColor = "var(--muted-foreground)";
 
-  const generatedSpec = useMemo<VisualizationSpec | null>(() => {
+  const resolvedSpec = useMemo<VisualizationSpec | null>(() => {
+    if (providedSpec) {
+      return {
+        $schema: "https://vega.github.io/schema/vega-lite/v5.json",
+        background: "transparent",
+        autosize: { type: "fit", contains: "padding" },
+        width: "container",
+        ...providedSpec,
+      } as VisualizationSpec;
+    }
+
     if (!data) return null;
 
     const isLineChart = variant === "line";
@@ -134,9 +144,27 @@ export const InconvoChart = ({
         },
       },
     };
-  }, [axisColor, data, palette, tableData, title, variant, xLabel, yLabel]);
+  }, [
+    axisColor,
+    data,
+    palette,
+    providedSpec,
+    tableData,
+    title,
+    variant,
+    xLabel,
+    yLabel,
+  ]);
 
-  const resolvedSpec = (providedSpec ?? generatedSpec) as VisualizationSpec | null;
+  useEffect(() => {
+    setError(null);
+  }, [resolvedSpec]);
+
+  const handleError = (err: Error) => {
+    console.error("Vega-Lite render error:", err);
+    setError(err.message);
+  };
+
   if (!resolvedSpec) {
     return (
       <div className="text-sm text-muted-foreground">
@@ -145,9 +173,22 @@ export const InconvoChart = ({
     );
   }
 
+  if (error) {
+    return (
+      <div className="text-sm text-red-500">
+        Failed to render chart: {error}
+      </div>
+    );
+  }
+
   return (
     <div className="flex w-full flex-col gap-4 text-foreground">
-      <VegaLite spec={resolvedSpec} options={{ actions: false }} style={{ width: "100%" }} />
+      <VegaLite
+        spec={resolvedSpec}
+        actions={false}
+        onError={handleError}
+        style={{ width: "100%" }}
+      />
     </div>
   );
 };

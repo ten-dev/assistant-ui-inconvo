@@ -121,6 +121,30 @@ export const parseInconvoResponse = (
   try {
     const parsed: unknown =
       typeof value === "string" ? JSON.parse(value) : value;
+
+    // Normalize flattened chart payloads where spec/data are top-level fields
+    if (
+      typeof parsed === "object" &&
+      parsed !== null &&
+      (parsed as { type?: unknown }).type === "chart"
+    ) {
+      const candidate = parsed as Record<string, unknown>;
+      if (!candidate.chart && (candidate.spec || candidate.data)) {
+        candidate.chart = {
+          spec: isSpec(candidate.spec) ? candidate.spec : undefined,
+          data: isChartData(candidate.data) ? candidate.data : undefined,
+          type:
+            candidate.type === "chart" &&
+            (candidate.chartType === "bar" || candidate.chartType === "line")
+              ? candidate.chartType
+              : undefined,
+          title: typeof candidate.title === "string" ? candidate.title : undefined,
+          xLabel: typeof candidate.xLabel === "string" ? candidate.xLabel : undefined,
+          yLabel: typeof candidate.yLabel === "string" ? candidate.yLabel : undefined,
+        };
+      }
+    }
+
     return isInconvoResponse(parsed) ? parsed : null;
   } catch {
     return null;
