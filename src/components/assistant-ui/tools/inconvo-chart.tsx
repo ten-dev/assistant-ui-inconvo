@@ -1,188 +1,153 @@
 "use client";
 
-import { useMemo, type ReactNode } from "react";
-import {
-  ResponsiveContainer,
-  LineChart as RechartsLineChart,
-  Line,
-  BarChart as RechartsBarChart,
-  Bar,
-  CartesianGrid,
-  Tooltip,
-  XAxis,
-  YAxis,
-  Label,
-  Legend,
-} from "recharts";
+import { useMemo } from "react";
+import { VegaEmbed as VegaLite } from "react-vega";
+import type { VisualizationSpec } from "vega-embed";
 
-import type { InconvoChartData, InconvoChartType } from "~/lib/inconvo/types";
+import type {
+  InconvoChartData,
+  InconvoChartType,
+  InconvoChartSpec,
+} from "~/lib/inconvo/types";
 import { buildChartPalette } from "~/components/assistant-ui/tools/inconvo-chart-colors";
 
 interface InconvoChartProps {
-  data: InconvoChartData;
-  variant: InconvoChartType;
+  data?: InconvoChartData;
+  spec?: InconvoChartSpec;
+  variant?: InconvoChartType;
   xLabel?: string;
   yLabel?: string;
   title?: string;
 }
 
-const ChartScaffold = ({
-  children,
-  axisColor,
-  textColor,
-  xLabel,
-  yLabel,
-  labelCount,
-}: {
-  children: ReactNode;
-  axisColor: string;
-  textColor: string;
-  xLabel?: string;
-  yLabel?: string;
-  labelCount: number;
-}) => (
-  <>
-    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-    <XAxis
-      dataKey="name"
-      stroke={axisColor}
-      tick={{ fill: axisColor, fontSize: 12 }}
-      angle={-30}
-      textAnchor="end"
-      interval={labelCount > 12 ? "preserveStartEnd" : 0}
-    >
-      {xLabel ? (
-        <Label
-          position="bottom"
-          offset={24}
-          style={{
-            fill: axisColor,
-            textAnchor: "middle",
-          }}
-          value={xLabel}
-        />
-      ) : null}
-    </XAxis>
-    <YAxis width={80} stroke={axisColor} tick={{ fill: axisColor, fontSize: 12 }}>
-      {yLabel ? (
-        <Label
-          angle={-90}
-          position="insideLeft"
-          style={{
-            fill: axisColor,
-            textAnchor: "middle",
-          }}
-          value={yLabel}
-        />
-      ) : null}
-    </YAxis>
-    <Tooltip
-      contentStyle={{
-        backgroundColor: "var(--card)",
-        border: "1px solid var(--border)",
-        borderRadius: 8,
-        color: textColor,
-      }}
-      labelStyle={{
-        color: textColor,
-        fontWeight: 600,
-      }}
-    />
-    <Legend
-      verticalAlign="top"
-      align="right"
-      wrapperStyle={{
-        color: axisColor,
-        paddingBottom: "4px",
-      }}
-    />
-    {children}
-  </>
-);
-
 export const InconvoChart = ({
   data,
-  variant,
+  spec: providedSpec,
+  variant = "bar",
   xLabel,
   yLabel,
+  title,
 }: InconvoChartProps) => {
-  const chartData = useMemo(() => {
-    return data.labels.map((label, index) => {
-      const row: { name: string; [key: string]: string | number } = {
-        name: label,
-      };
-      data.datasets.forEach((dataset) => {
-        row[dataset.name] = dataset.values[index] ?? 0;
-      });
-      return row;
-    });
-  }, [data]);
+  const tableData = useMemo(
+    () =>
+      data
+        ? data.labels.flatMap((label, index) =>
+            data.datasets.map((dataset) => ({
+              label,
+              series: dataset.name,
+              value: dataset.values[index] ?? 0,
+            })),
+          )
+        : [],
+    [data],
+  );
 
   const palette = useMemo(
-    () => buildChartPalette(data.datasets.length),
-    [data.datasets.length],
+    () => buildChartPalette(data?.datasets.length ?? 0),
+    [data?.datasets.length],
   );
 
   const axisColor = "var(--muted-foreground)";
-  const textColor = "var(--foreground)";
-  const margins = { top: 20, right: 30, bottom: xLabel ? 80 : 40, left: 20 };
 
-  const renderLines = () =>
-    data.datasets.map((dataset, index) => {
-      const stroke = palette[index] ?? "var(--chart-series-primary)";
-      return (
-        <Line
-          key={dataset.name}
-          type="monotone"
-          dataKey={dataset.name}
-          stroke={stroke}
-          strokeWidth={2}
-          dot={{ r: 3, strokeWidth: 2, stroke, fill: "var(--card)" }}
-          activeDot={{ r: 5, strokeWidth: 2, stroke, fill: stroke }}
-        />
-      );
-    });
+  const generatedSpec = useMemo<VisualizationSpec | null>(() => {
+    if (!data) return null;
 
-  const renderBars = () =>
-    data.datasets.map((dataset, index) => (
-      <Bar
-        key={dataset.name}
-        dataKey={dataset.name}
-        fill={palette[index] ?? "var(--chart-series-primary)"}
-        radius={[4, 4, 0, 0]}
-        maxBarSize={48}
-      />
-    ));
+    const isLineChart = variant === "line";
+
+    return {
+      $schema: "https://vega.github.io/schema/vega-lite/v5.json",
+      description: title ?? "Inconvo chart",
+      background: "transparent",
+      autosize: { type: "fit", contains: "padding" },
+      width: "container",
+      height: 380,
+      padding: { left: 8, right: 12, top: 12, bottom: xLabel ? 56 : 28 },
+      data: { values: tableData },
+      mark: isLineChart
+        ? {
+            type: "line",
+            interpolate: "monotone",
+            point: { size: 60, filled: true, fill: "var(--card)" },
+            strokeWidth: 2,
+          }
+        : {
+            type: "bar",
+            cornerRadiusEnd: 4,
+          },
+      encoding: {
+        x: {
+          field: "label",
+          type: "ordinal",
+          title: xLabel ?? null,
+          axis: {
+            labelAngle: -30,
+            labelColor: axisColor,
+            titleColor: axisColor,
+            labelFontSize: 12,
+            titleFontSize: 12,
+            labelLimit: 160,
+          },
+        },
+        y: {
+          field: "value",
+          type: "quantitative",
+          title: yLabel ?? null,
+          axis: {
+            labelColor: axisColor,
+            titleColor: axisColor,
+            labelFontSize: 12,
+            titleFontSize: 12,
+            gridColor: "var(--border)",
+            gridDash: [3, 3],
+          },
+        },
+        color: {
+          field: "series",
+          type: "nominal",
+          scale: { range: palette },
+          legend: {
+            title: null,
+            orient: "top",
+            labelColor: axisColor,
+            titleColor: axisColor,
+            labelFontSize: 12,
+          },
+        },
+        tooltip: [
+          { field: "label", type: "ordinal", title: xLabel ?? "Label" },
+          { field: "series", type: "nominal", title: "Series" },
+          { field: "value", type: "quantitative", title: yLabel ?? "Value" },
+        ],
+        ...(isLineChart
+          ? {}
+          : {
+              xOffset: { field: "series" },
+            }),
+      },
+      config: {
+        view: { stroke: "var(--border)", strokeWidth: 1 },
+        axis: {
+          labelColor: axisColor,
+          titleColor: axisColor,
+          tickColor: axisColor,
+          domainColor: axisColor,
+        },
+      },
+    };
+  }, [axisColor, data, palette, tableData, title, variant, xLabel, yLabel]);
+
+  const resolvedSpec = (providedSpec ?? generatedSpec) as VisualizationSpec | null;
+  if (!resolvedSpec) {
+    return (
+      <div className="text-sm text-muted-foreground">
+        No chart data provided.
+      </div>
+    );
+  }
 
   return (
     <div className="flex w-full flex-col gap-4 text-foreground">
-      <ResponsiveContainer width="100%" height={400}>
-        {variant === "line" ? (
-          <RechartsLineChart data={chartData} margin={margins}>
-            <ChartScaffold
-              axisColor={axisColor}
-              textColor={textColor}
-              xLabel={xLabel}
-              yLabel={yLabel}
-              labelCount={data.labels.length}
-            >
-              {renderLines()}
-            </ChartScaffold>
-          </RechartsLineChart>
-        ) : (
-          <RechartsBarChart data={chartData} margin={margins}>
-            <ChartScaffold
-              axisColor={axisColor}
-              textColor={textColor}
-              xLabel={xLabel}
-              yLabel={yLabel}
-              labelCount={data.labels.length}
-            >
-              {renderBars()}
-            </ChartScaffold>
-          </RechartsBarChart>
-        )}
-      </ResponsiveContainer>
+      <VegaLite spec={resolvedSpec} options={{ actions: false }} style={{ width: "100%" }} />
     </div>
   );
 };

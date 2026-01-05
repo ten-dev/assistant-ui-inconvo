@@ -1,5 +1,7 @@
 export type InconvoChartType = "bar" | "line";
 
+export type InconvoChartSpec = Record<string, unknown>;
+
 export interface InconvoChartDataset {
   name: string;
   values: number[];
@@ -11,11 +13,12 @@ export interface InconvoChartData {
 }
 
 export interface InconvoChart {
-  data: InconvoChartData;
+  data?: InconvoChartData;
+  spec?: InconvoChartSpec;
   title?: string;
   xLabel?: string;
   yLabel?: string;
-  type: InconvoChartType;
+  type?: InconvoChartType;
 }
 
 export interface InconvoTable {
@@ -61,12 +64,19 @@ const isChartData = (value: unknown): value is InconvoChartData => {
   );
 };
 
+const isSpec = (value: unknown): value is InconvoChartSpec => {
+  return typeof value === "object" && value !== null;
+};
+
 const isChart = (value: unknown): value is InconvoChart => {
   return (
     typeof value === "object" &&
     value !== null &&
-    ((value as InconvoChart).type === "bar" || (value as InconvoChart).type === "line") &&
-    isChartData((value as InconvoChart).data)
+    (((value as InconvoChart).type === "bar" ||
+      (value as InconvoChart).type === "line" ||
+      typeof (value as InconvoChart).type === "undefined") &&
+      (isChartData((value as InconvoChart).data) ||
+        isSpec((value as InconvoChart).spec)))
   );
 };
 

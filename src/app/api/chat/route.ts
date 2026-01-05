@@ -24,7 +24,7 @@ export async function POST(req: Request) {
   };
 
   const result = streamText({
-    model: openai("gpt-5-chat-latest"),
+    model: openai("gpt-5.2-chat-latest"),
     stopWhen: stepCountIs(5),
     system,
     messages: convertToModelMessages(messages),

@@ -103,6 +103,7 @@ const MessageDataAnalystToolRender: ToolCallMessagePartComponent<
           />
           <InconvoChart
             data={parsed.chart.data}
+            spec={parsed.chart.spec}
             variant={parsed.chart.type}
             title={parsed.chart.title}
             xLabel={parsed.chart.xLabel}
