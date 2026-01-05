@@ -1,20 +1,11 @@
+import type { VisualizationSpec } from "vega-embed";
+
 export type InconvoChartType = "bar" | "line";
 
-export type InconvoChartSpec = Record<string, unknown>;
-
-export interface InconvoChartDataset {
-  name: string;
-  values: number[];
-}
-
-export interface InconvoChartData {
-  labels: string[];
-  datasets: InconvoChartDataset[];
-}
+export type InconvoChartSpec = VisualizationSpec;
 
 export interface InconvoChart {
-  data?: InconvoChartData;
-  spec?: InconvoChartSpec;
+  spec: InconvoChartSpec;
   title?: string;
   xLabel?: string;
   yLabel?: string;
@@ -37,46 +28,22 @@ export interface InconvoResponse {
   table?: InconvoTable;
 }
 
-const isStringArray = (value: unknown): value is string[] => {
-  return Array.isArray(value) && value.every((item) => typeof item === "string");
-};
-
-const isNumberArray = (value: unknown): value is number[] => {
-  return Array.isArray(value) && value.every((item) => typeof item === "number");
-};
-
-const isDataset = (value: unknown): value is InconvoChartDataset => {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    typeof (value as InconvoChartDataset).name === "string" &&
-    isNumberArray((value as InconvoChartDataset).values)
-  );
-};
-
-const isChartData = (value: unknown): value is InconvoChartData => {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    isStringArray((value as InconvoChartData).labels) &&
-    Array.isArray((value as InconvoChartData).datasets) &&
-    (value as InconvoChartData).datasets.every(isDataset)
-  );
-};
-
-const isSpec = (value: unknown): value is InconvoChartSpec => {
-  return typeof value === "object" && value !== null;
-};
-
 const isChart = (value: unknown): value is InconvoChart => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const chart = value as InconvoChart;
+  const hasValidType =
+    chart.type === undefined || chart.type === "bar" || chart.type === "line";
+  const hasSpec = chart.spec && typeof chart.spec === "object";
+
+  return hasValidType && !!hasSpec;
+};
+
+const isStringArray = (value: unknown): value is string[] => {
   return (
-    typeof value === "object" &&
-    value !== null &&
-    (((value as InconvoChart).type === "bar" ||
-      (value as InconvoChart).type === "line" ||
-      typeof (value as InconvoChart).type === "undefined") &&
-      (isChartData((value as InconvoChart).data) ||
-        isSpec((value as InconvoChart).spec)))
+    Array.isArray(value) && value.every((item) => typeof item === "string")
   );
 };
 
@@ -100,7 +67,11 @@ const isInconvoResponse = (value: unknown): value is InconvoResponse => {
     return false;
   }
 
-  if (candidate.type !== "text" && candidate.type !== "chart" && candidate.type !== "table") {
+  if (
+    candidate.type !== "text" &&
+    candidate.type !== "chart" &&
+    candidate.type !== "table"
+  ) {
     return false;
   }
 
@@ -116,36 +87,33 @@ const isInconvoResponse = (value: unknown): value is InconvoResponse => {
 };
 
 export const parseInconvoResponse = (
-  value: unknown,
+  value: unknown
 ): InconvoResponse | null => {
   try {
     const parsed: unknown =
       typeof value === "string" ? JSON.parse(value) : value;
 
-    // Normalize flattened chart payloads where spec/data are top-level fields
-    if (
-      typeof parsed === "object" &&
-      parsed !== null &&
-      (parsed as { type?: unknown }).type === "chart"
-    ) {
+    if (typeof parsed === "object" && parsed !== null) {
       const candidate = parsed as Record<string, unknown>;
-      if (!candidate.chart && (candidate.spec || candidate.data)) {
+
+      // Accept top-level spec payloads for charts by wrapping them in a chart object.
+      if (
+        candidate.type === "chart" &&
+        !candidate.chart &&
+        candidate.spec &&
+        typeof candidate.spec === "object"
+      ) {
         candidate.chart = {
-          spec: isSpec(candidate.spec) ? candidate.spec : undefined,
-          data: isChartData(candidate.data) ? candidate.data : undefined,
-          type:
-            candidate.type === "chart" &&
-            (candidate.chartType === "bar" || candidate.chartType === "line")
-              ? candidate.chartType
-              : undefined,
-          title: typeof candidate.title === "string" ? candidate.title : undefined,
-          xLabel: typeof candidate.xLabel === "string" ? candidate.xLabel : undefined,
-          yLabel: typeof candidate.yLabel === "string" ? candidate.yLabel : undefined,
-        };
+          spec: candidate.spec,
+          title: candidate.title,
+          xLabel: candidate.xLabel,
+          yLabel: candidate.yLabel,
+          type: candidate.chartType as InconvoChartType | undefined,
+        } satisfies Partial<InconvoChart>;
       }
     }
 
-    return isInconvoResponse(parsed) ? parsed : null;
+    return isInconvoResponse(parsed) ? (parsed as InconvoResponse) : null;
   } catch {
     return null;
   }

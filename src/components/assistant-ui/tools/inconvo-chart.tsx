@@ -4,19 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import { VegaEmbed } from "react-vega";
 import type { VisualizationSpec } from "vega-embed";
 
-import type {
-  InconvoChartData,
-  InconvoChartType,
-  InconvoChartSpec,
-} from "~/lib/inconvo/types";
+import type { InconvoChartSpec } from "~/lib/inconvo/types";
 
 interface InconvoChartProps {
-  data?: InconvoChartData;
   spec?: InconvoChartSpec;
-  variant?: InconvoChartType;
-  xLabel?: string;
-  yLabel?: string;
-  title?: string;
 }
 
 export const InconvoChart = ({ spec: providedSpec }: InconvoChartProps) => {
@@ -49,7 +40,7 @@ export const InconvoChart = ({ spec: providedSpec }: InconvoChartProps) => {
   if (!resolvedSpec) {
     return (
       <div className="text-sm text-muted-foreground">
-        No chart data provided.
+        No chart spec provided.
       </div>
     );
   }
