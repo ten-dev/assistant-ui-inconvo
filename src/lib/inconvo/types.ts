@@ -103,12 +103,24 @@ export const parseInconvoResponse = (
         candidate.spec &&
         typeof candidate.spec === "object"
       ) {
+        const spec = candidate.spec as VisualizationSpec;
+        const title =
+          typeof candidate.title === "string" ? candidate.title : undefined;
+        const xLabel =
+          typeof candidate.xLabel === "string" ? candidate.xLabel : undefined;
+        const yLabel =
+          typeof candidate.yLabel === "string" ? candidate.yLabel : undefined;
+        const chartType =
+          candidate.chartType === "bar" || candidate.chartType === "line"
+            ? candidate.chartType
+            : undefined;
+
         candidate.chart = {
-          spec: candidate.spec,
-          title: candidate.title,
-          xLabel: candidate.xLabel,
-          yLabel: candidate.yLabel,
-          type: candidate.chartType as InconvoChartType | undefined,
+          spec,
+          title,
+          xLabel,
+          yLabel,
+          type: chartType,
         } satisfies Partial<InconvoChart>;
       }
     }
