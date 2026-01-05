@@ -3,7 +3,7 @@ import "~/styles/globals.css";
 import { type Metadata } from "next";
 import { Geist } from "next/font/google";
 
-import { ThemeProvider } from "~/components/theme-provider";
+import { AppShell } from "~/components/app-shell";
 
 export const metadata: Metadata = {
   title: "Assistant-UI x Inconvo",
@@ -26,7 +26,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="h-full min-h-screen antialiased">
-        <ThemeProvider disableTransitionOnChange>{children}</ThemeProvider>
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );
