@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { VegaLite } from "react-vega";
+import { VegaEmbed } from "react-vega";
 import type { VisualizationSpec } from "vega-embed";
 
 import type {
@@ -40,9 +40,10 @@ export const InconvoChart = ({ spec: providedSpec }: InconvoChartProps) => {
     setError(null);
   }, [resolvedSpec]);
 
-  const handleError = (err: Error) => {
+  const handleError = (err: unknown) => {
+    const message = err instanceof Error ? err.message : String(err);
     console.error("Vega-Lite render error:", err);
-    setError(err.message);
+    setError(message);
   };
 
   if (!resolvedSpec) {
@@ -63,9 +64,9 @@ export const InconvoChart = ({ spec: providedSpec }: InconvoChartProps) => {
 
   return (
     <div className="flex w-full flex-col gap-4 text-foreground">
-      <VegaLite
+      <VegaEmbed
         spec={resolvedSpec}
-        actions={false}
+        options={{ actions: false }}
         onError={handleError}
         style={{ width: "100%" }}
       />
