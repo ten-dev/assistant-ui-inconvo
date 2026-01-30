@@ -23,6 +23,10 @@ export async function POST(req: Request) {
     organisationId: 1,
   };
 
+  // In production, get these from your auth system
+  const agentId = process.env.INCONVO_AGENT_ID || "agt_123";
+  const userIdentifier = "user_123"; // Replace with actual user ID from auth
+
   const result = streamText({
     model: openai("gpt-5.2-chat-latest"),
     stopWhen: stepCountIs(5),
@@ -31,6 +35,8 @@ export async function POST(req: Request) {
     tools: {
       ...frontendTools(tools),
       ...inconvoTools({
+        agentId,
+        userIdentifier,
         userContext,
       }),
     },
