@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { VegaEmbed } from "react-vega";
 import type { VisualizationSpec } from "vega-embed";
-
 import type { InconvoChartSpec } from "~/lib/inconvo/types";
+import dynamic from "next/dynamic";
+
+const VegaEmbed = dynamic(() => import("react-vega").then((m) => m.VegaEmbed), {
+  ssr: false,
+});
 
 interface InconvoChartProps {
   spec?: InconvoChartSpec;
@@ -65,7 +68,7 @@ export const InconvoChart = ({
 
     const observer = new MutationObserver((mutations) => {
       const shouldUpdate = mutations.some(
-        (m) => m.type === "attributes" && m.attributeName === "class"
+        (m) => m.type === "attributes" && m.attributeName === "class",
       );
       if (shouldUpdate) {
         setActiveTheme(resolveTheme());
